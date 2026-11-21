@@ -1,14 +1,23 @@
 (function(){
-var W=20,H=13,N=260,TERM=48,MS=3000,Y0=2050,SE=['봄','여름','가을','겨울'],SC=['#2FC27A','#FF8A3D','#D98A2B','#3AA0E8'],RL=['일반','희귀','전설','비상'];
+var W=20,H=13,N=260,TERM=48,MS=3000,Y0=2050,SE=['봄','여름','가을','겨울'],SC=['#2FC27A','#FF8A3D','#D98A2B','#3AA0E8'],RL=['일반','특수','희귀','비상'];
 var BT=[['불구덩이 지옥',8,75,30,-6,1.3,2.2,1,1,0,0],['열대 우림',140,50,42,2,1.1,.5,.3,0,0,1],['열대 사바나',60,50,60,1,1,1.4,.3,.5,0,.3],['열사막',40,60,72,-1,.8,.3,1,1,0,0],['건조 스텝',52,38,66,0,.9,1.2,.5,.7,0,0],['아열대 숲',120,42,55,3,1,.8,.2,0,0,.5],['온난 초원',105,45,66,3,1,1,0,0,0,0],['온대 평야',95,42,68,3,1,1,0,0,0,0],['활엽수림',130,38,52,3,1.05,.9,0,0,0,0],['단풍 숲',25,55,55,3,1.05,1.1,0,0,0,0],['호숫가 습지',165,30,60,1,1.1,.4,0,0,0,1],['서늘한 초원',112,32,68,2,1,.9,0,0,.1,0],['침엽수림',150,30,42,1,1.1,.8,0,0,.3,0],['타이가',165,25,50,0,1.1,.7,0,0,.6,0],['고지대 관목',90,18,58,-1,1.05,.6,0,0,.5,0],['한랭 평원',180,18,78,-1,1.05,.5,0,0,.8,0],['눈덮인 침엽림',170,20,75,-2,1.1,.4,0,0,1,0],['툰드라',200,14,76,-3,1.15,.3,0,0,1,0],['빙설 설원',205,40,92,-3,1.15,.2,0,0,1,0],['극지 빙하',200,60,88,-4,1.2,.1,0,0,1,0]],
 BIO=BT.map(function(r){return[r[0],r[4],r[5]]}),BF=BT.map(function(r){return r[6]});
 var cz=2,cons={},vr=[],pops={};
 function bnote(b){var r=BT[b],a=['쾌적 '+(r[4]>0?'+':'')+r[4]];if(r[5]!==1)a.push('건설비 ×'+r[5]);if(r[7]>=.5)a.push('여름 만족 −'+Math.round(6*r[7]));if(r[8]>=.5)a.push('풍력·공장 +'+Math.round(20*r[8])+'%');if(r[9]>0)a.push('겨울 유지비 ×'+(1+.3*r[9]).toFixed(2)+' · 케이블카 +'+Math.round(30*r[9])+'%');if(r[10]>0)a.push('공원 ×'+(1+.3*r[10]).toFixed(2)+' · 침수 ×'+(1+.5*r[10]).toFixed(2));a.push(r[6]>=1.5?'화재 위험 높음':r[6]<=.5?'화재 적음':'');return a.filter(Boolean).join(' · ')}
 function bc(i,b){var r=BT[b];return'hsl('+(r[1]+R(i)*14-7).toFixed(1)+','+r[2]+'%,'+(r[3]+R(i+7)*8-4).toFixed(1)+'%)'}
 function mc(i,b,k){var r=BT[b],sn=r[9],l=k?(sn>=.6?84:r[6]>=2?26:56):(sn>=.6?72:Math.max(26,r[3]-16));return'hsl('+(r[1]+R(i)*10-5).toFixed(1)+','+(k?8+r[2]*.2:r[2]*.7).toFixed(0)+'%,'+(l+R(i+3)*7-3.5).toFixed(1)+'%)'}
-function pickBio(r){cz=1+Math.floor(r()*20);var lo=Math.max(1,Math.min(cz-2,16)),cd=[],w=[],t=0,q;for(q=lo;q<=lo+4;q++){cd.push(q-1);var x=q===cz?4:Math.abs(q-cz)===1?2:1;w.push(x);t+=x}
-function wp(){var v=r()*t,k=0;while(k<4&&v>=w[k]){v-=w[k];k++}return cd[k]}
-var ab=cz===1?[1,2]:cz===20?[18,17]:[cz-2,cz];return[cz-1,ab[0],ab[1],wp(),wp()].sort(function(){return r()-.5})}
+/* 계절별 지형색 키프레임: 바이옴×(초원/낮은 산/고산)×(봄·여름·가을·겨울) */
+var KFc={};
+function KF(b){if(KFc[b])return KFc[b];var r=BT[b],hot=r[7]>=.5,sn=r[9]>=.6,tr=!hot&&r[7]>=.3,fa=hot?.15:tr?.3:sn?.1:.6,wn=hot?.1:tr?.12:sn?.5:.75,
+cl=function(v,a,z){return Math.max(a,Math.min(z,v))},
+mk4=function(h,s,l,w2,wl){return[[h-3,cl(s*1.08,0,100),cl(l+3,0,96)],[h,cl(s*1.04,0,100),cl(l-2,0,96)],[h+(34-h)*fa,cl(s*(1-.12*fa),0,100),cl(l-4*fa,0,96)],[h+(205-h)*w2*.35,cl(s*(1-.7*w2),0,100),cl(l+(wl-l)*.45*w2,0,96)]]};
+return KFc[b]={g:mk4(r[1],r[2],r[3],wn,90),h:mk4(r[1],r[2]*.7,sn?72:Math.max(26,r[3]-16),wn,90),m:mk4(r[1],8+r[2]*.2,sn?84:r[6]>=2?26:56,hot?.35:.9,94)}}
+function sbm(i,p){return'hsl(calc(var(--'+p+'h) + '+(R(i)*10-5).toFixed(1)+'),calc(var(--'+p+'s)*1%),calc((var(--'+p+'l) + '+(R(i+3)*7-3.5).toFixed(1)+')*1%))'}
+/* 기후 스펙트럼 가중치: 사바나(3)~타이가(14)를 흔하게, 불구덩이 지옥·극지는 드물게 */
+function pickBio(r){var ZW=[1,1.5,7,7,7,7,7,7,7,7,7,7,7,7,2.5,2,2,1.5,1,.8],tw=0,v0,q0=0;ZW.forEach(function(z){tw+=z});v0=r()*tw;while(q0<19&&v0>=ZW[q0]){v0-=ZW[q0];q0++}cz=q0+1;
+var lo=Math.max(1,Math.min(cz-2,16)),cd=[],w=[],t=0,q;for(q=lo;q<=lo+4;q++){if(q===1&&cz>1)continue;cd.push(q-1);var x=q===cz?4:Math.abs(q-cz)===1?2:1;w.push(x);t+=x}
+function wp(){var v=r()*t,k=0;while(k<w.length-1&&v>=w[k]){v-=w[k];k++}return cd[k]}
+var ab=cz===1?[1,2]:cz===2?[2,3]:cz===20?[18,17]:[cz-2,cz];return[cz-1,ab[0],ab[1],wp(),wp()].sort(function(){return r()-.5})}
 function legend(){var e=document.querySelector('.leg');if(!e)return;var u={},h='<span><b>기후 '+cz+'/20</b></span>';bio.forEach(function(b){u[b]=1});Object.keys(u).sort(function(a,b){return a-b}).forEach(function(k){h+='<span><i style="background:'+bc(3,+k)+'"></i>'+BT[k][0]+'</span>'});h+='<span><i style="background:'+mc(3,bio[0],0)+'"></i>낮은 산</span><span><i style="background:'+mc(3,bio[0],1)+'"></i>고산</span><span><i style="background:#3C93DA"></i>바다</span>';e.innerHTML=h}
 function bld(i,t){if(t==='d'){delete cons[i];return}var n=Math.max(1,Math.round(B[t][2]/150));cons[i]={r:n,t:n};vr[i]=0}
 function wfix(w){if(cz<=4&&(w==='눈'||w==='한파'))return'맑음';if(cz>=16&&w==='폭염')return'맑음';return w}
@@ -42,7 +51,8 @@ M:'<path d="M1 21 9 6l4.5 8L16 10l7 11z"/><path d="M9 6 6.8 10.4 9 9.4l2.2 1z" s
 H:'<path d="M1 20c4-9 8-11 11-11s8 3 11 11z"/>',
 F:'<path d="M8 3 2 13h12zM16 8l-6 11h12z"/>',
 x:'<path d="M5 5l14 14M19 5L5 19" stroke="#fff" stroke-width="3" fill="none"/>',
-d:'<path d="M3 12h18M12 3v18" stroke="#fff" stroke-width="3" fill="none"/>'};
+d:'<path d="M3 12h18M12 3v18" stroke="#fff" stroke-width="3" fill="none"/>',
+Z:'<path d="M4 4h16v16H4z" fill-opacity=".3"/><path d="M4 4h16v16H4z" stroke="#fff" stroke-width="2.4" fill="none" stroke-dasharray="4 3"/>'};
 var FL='<svg class="fl" viewBox="0 0 24 24"><path d="M12 1c1 4 7 6 7 13a7 7 0 0 1-14 0c0-3 2-5 3-8 1 2 2 2 4-5z" fill="#FF4A1A"/><path d="M12 11c1 2.5 4 3.5 4 6a4 4 0 0 1-8 0c0-2 2-2.5 4-6z" fill="#FFD23F"/></svg>';
 var BB='<svg class="bbl" viewBox="0 0 24 24"><path d="M3 3h18v13H12l-5 5v-5H3z" fill="#fff" stroke="#3A86FF" stroke-width="1.6"/><circle cx="12" cy="9.5" r="3.3" fill="#FFB020"/></svg>';
 function sv(p,f,s){return'<svg viewBox="0 0 24 24" width="'+(s||'76%')+'" height="'+(s||'76%')+'" fill="'+f+'">'+p+'</svg>'}
@@ -52,12 +62,18 @@ var WI={'맑음':SUN,'비':CL+'<path d="M8 20l-1 2M12 20l-1 2M16 20l-1 2"/>','�
 var WC={'폭염':'#FF6A3D','한파':'#3AB0FF','황금 눈':'#E8A800','화산 폭발':'#FF4A1A','오로라':'#7A5CFF','솜사탕 비':'#FF7AC8','유성우':'#8E7CFF','아틀란티스 쓰나미':'#2E9FD9','개구리 비':'#3DBE7A'},WS={'아틀란티스 쓰나미':'아틀란티스'};
 function ws(n,z){return'<svg viewBox="0 0 24 24" width="'+z+'" height="'+z+'" fill="none" stroke="'+(WC[n]||'currentColor')+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+WI[n]+'</svg>'+(WS[n]||n)}
 var WX=[[['맑음',.7],['비',.3]],[['맑음',.25],['폭염',.25],['폭우',.35],['태풍',.15]],[['맑음',.65],['비',.2],['태풍',.15]],[['맑음',.4],['한파',.4],['눈',.2]]];
-var WT={'맑음':'맑은 달. 특별한 영향 없음','비':'비. 불이 꺼질 수 있어요','폭우':'폭우. 강 1칸 안 건물은 공원이 없으면 침수 피해(15%). 불은 꺼져요','태풍':'태풍. 강 2칸 안 건물 피해(25%), 풍력 중단, 항구 약화','폭염':'폭염. 공원 2칸 밖 주거지 만족도 −8','한파':'한파. 주택 유지비 ×1.5, 상가 매출 ×0.8','눈':'눈. 상가 매출 ×0.9, 불이 꺼져요',
+var WT={'맑음':'맑은 달. 특별한 영향 없음','비':'비. 불이 꺼질 수 있어요','폭우':'폭우. 강 1칸 안 건물은 공원이 없으면 침수 피해(15%). 불은 꺼져요','태풍':'태풍. 강 2칸 안 건물 피해(25%), 풍력 중단, 항구 약화','폭염':'폭염. 공원 2칸 밖 주거지 만족도 −8 (녹색 주거 단지는 면제)','한파':'한파. 주택 유지비 ×1.5, 상가 매출 ×0.8','눈':'눈. 상가 매출 ×0.9, 불이 꺼져요',
 '아틀란티스 쓰나미':'★전설★ 바다에서 아틀란티스가 솟아올라 해안이 휩쓸려요. 낮은 산은 안전, 이후 유적 관광 대박','화산 폭발':'★전설★ 고산이 폭발! 주변에 용암이 번지고 화산재가 쌓여요','유성우':'★희귀★ 별똥별이 쏟아져요. 관광↑, 운 나쁘면 건물이 맞아요','솜사탕 비':'★희귀★ 하늘에서 솜사탕 비! 시민들이 행복해해요','개구리 비':'★희귀★ 개구리가 쏟아져요. 만족도↓ 관광↑','오로라':'★희귀★ 도시 위로 오로라! 관광 폭발','황금 눈':'★희귀★ 황금빛 눈이 내려요. 시 금고가 두둑해져요'};
 var KG=[[[118,42,78],[135,46,66],[46,52,68],[190,22,90]],[[38,48,78],[34,55,72],[32,50,70],[36,30,82]],[[200,25,90],[165,22,84],[205,26,90],[210,30,95]],[[140,48,62],[148,52,52],[140,46,56],[150,38,64]]],
 KO={f:[[140,40,52],[145,46,36],[20,64,52],[195,14,72]],h:[[95,28,60],[108,32,50],[40,36,56],[200,12,86]],m:[[100,16,62],[120,18,48],[30,28,56],[210,12,88]]};
-var PO=[['감세 정책','만족 +4, 전체 수입 ×0.93',{hap:4,inc:.93}],['녹색 뉴딜','공원 효과 ×1.5, 건설비 ×1.08',{park:1.5,cost:1.08}],['스마트시티','상가·업무 수입 ×1.2, 유지비 ×1.12',{com:1.2,up:1.12}],['야간경제 특구','상가·업무 ×1.15, 만족 −3',{com:1.15,hap:-3}],['관광 진흥','케이블카·유적·철새 관광 ×1.5, 행정비 ×1.12',{tour:1.5,adm:1.12}],['방재 투자','재난 피해·화재 확산 −60%, 유지비 ×1.1',{dmg:.4,fire:.4,up:1.1}],['산업 육성','공장·채석장·항구 ×1.4, 만족 −2',{ind:1.4,hap:-2}],['복지 확대','만족 +8, 행정비 ×1.35',{hap:8,adm:1.35}],['규제 완화','건설비 ×0.85, 화재 확산 ×1.5',{cost:.85,fire:1.5}],['긴축 재정','행정비 ×0.6, 만족 −5',{adm:.6,hap:-5}],['이주 장려금','인구 ×1.15, 행정비 ×1.15',{popm:1.15,adm:1.15}],['청년 일자리','전체 수입 ×1.08, 건설비 ×1.05',{inc:1.08,cost:1.05}]];
-var grid,under,bio,lv,lvp,fires,bub,mods,pol,m,acc,speed=0,prev=1,budget,wx,nx,mi,tn,approv,lowA,lastEv,over,tool='d',S0,best=0,cells=[],down=false,lastYr=-1,tbtn={},tt,P={},pend=[],ovOn=false,tk='',AL=[],lastSay=0,rt=0,mute=false;
+/* ---- 권역(District) 정의 ---- */
+var ZT={
+T:{n:'테크 밸리',h:'#3F77F0',c:'63,119,240',k:'oc',d:'업무 ×1.3 · 상가 ×1.1 · 공장·채석장 ×0.75. 공업단지 3칸 안이면 업무 ×1.1(공급망). 핵심: 업무시설·상가'},
+V:{n:'관광 특구',h:'#FF5FB0',c:'255,95,176',k:'vkcp',d:'케이블카·항구·상가 ×1.3 · 주거 만족 +3 · 공장·채석장 ×0.6. 핵심: 케이블카·항구·상가·공원'},
+I:{n:'중화학 공업단지',h:'#C77B2E',c:'199,123,46',k:'fqk',d:'공장·채석장·항구 ×1.5 · 화재 확산 ×1.4. 안쪽 주거 만족 −12↓, 바깥 2칸 주거 −10, 3칸 안 관광 ×0.85. 핵심: 공장·채석장·항구'},
+G:{n:'녹색 주거 단지',h:'#2FC27A',c:'47,194,122',k:'raps',d:'주거 만족 +6 · 상가 ×1.1 · 폭염 면제 · 공장·채석장 건설 불가. 관광 시설 2칸 안이면 관광 ×1.1. 핵심: 주택·아파트·공원·학교'}};
+var PO=[['감세 정책','만족 +4, 전체 수입 ×0.93',{hap:4,inc:.93}],['녹색 뉴딜','공원 효과 ×1.5, 건설비 ×1.08',{park:1.5,cost:1.08}],['스마트시티','상가·업무 수입 ×1.2, 유지비 ×1.12',{com:1.2,up:1.12}],['야간경제 특구','상가·업무 ×1.15, 만족 −3',{com:1.15,hap:-3}],['관광 진흥','케이블카·유적·철새 관광 ×1.5, 행정비 ×1.12',{tour:1.5,adm:1.12}],['방재 투자','재난 피해·화재 확산 −60%, 유지비 ×1.1',{dmg:.4,fire:.4,up:1.1}],['산업 육성','공장·채석장·항구 ×1.4, 만족 −2',{ind:1.4,hap:-2}],['복지 확대','만족 +8, 행정비 ×1.35',{hap:8,adm:1.35}],['규제 완화','건설비 ×0.85, 화재 확산 ×1.5',{cost:.85,fire:1.5}],['긴축 재정','행정비 ×0.6, 만족 −5',{adm:.6,hap:-5}],['이주 장려금','인구 ×1.15, 행정비 ×1.15',{popm:1.15,adm:1.15}],['청년 일자리','전체 수입 ×1.08, 건설비 ×1.05',{inc:1.08,cost:1.05}],['권역 특화 지원','권역 효과 ×1.25, 행정비 ×1.1',{zone:1.25,adm:1.1}]];
+var grid,under,bio,lv,lvp,fires,bub,mods,pol,m,acc,speed=0,prev=1,budget,wx,nx,mi,tn,approv,lowA,lastEv,over,tool='d',S0,best=0,cells=[],down=false,lastYr=-1,tbtn={},tt,P={},pend=[],ovOn=false,tk='',AL=[],lastSay=0,rt=0,mute=false,zn=[];
 var $=function(i){return document.getElementById(i)};
 function R(i){return((i*2654435761+12345)>>>0)%1000/1000}
 function rp(a){return a[Math.floor(Math.random()*a.length)]}
@@ -70,17 +86,44 @@ function has(t){return function(){return cnt(t)>0}}
 function pickT(ts){var l=[];for(var i=0;i<N;i++)if(ts.indexOf(grid[i])>=0)l.push(i);return l.length?rp(l):-1}
 function cm(k){var v=1;mods.forEach(function(o){if(o.k===k)v*=o.v});return v}
 function md(k,v,n){mods.push({k:k,v:v,m:n})}
-function calcP(){P={inc:1,com:1,ind:1,tour:1,adm:1,up:1,cost:1,park:1,dmg:1,fire:1,popm:1,hap:0};pol.forEach(function(id){apQ(PO[id][2])});apQ(cmy().t)}
-function cst(t,i){var c=B[t][2]*(1+.03*Math.floor(m/12))*(1+.08*tn)*cm('cost')*P.cost;if(i!==undefined){c*=BIO[bio[i]][2];if(grid[i]==='H')c*=1.3}return Math.round(c)}
+function calcP(){P={inc:1,com:1,ind:1,tour:1,adm:1,up:1,cost:1,park:1,dmg:1,fire:1,popm:1,zone:1,hap:0};pol.forEach(function(id){apQ(PO[id][2])});apQ(cmy().t)}
+function cst(t,i){var c=B[t][2]*(1+.03*Math.floor(m/12))*(1+.08*tn)*cm('cost')*P.cost;if(i!==undefined){c*=BIO[bio[i]][2];if(grid[i]==='H')c*=1.3;if(zn[i]&&ZT[zn[i]].k.indexOf(t)>=0)c*=.9}return Math.round(c)}
 function sb(i,p){return'hsl(calc(var(--'+p+'h) + '+(R(i)*14-7).toFixed(1)+'),calc(var(--'+p+'s)*1%),calc((var(--'+p+'l) + '+(R(i+7)*8-4).toFixed(1)+')*1%))'}
 function sc3(K,t){var k=Math.floor(t/3)%4,w=Math.max(0,t%3-2),a=K[k],b=K[(k+1)%4];return a.map(function(v,i){return v+(b[i]-v)*w})}
 function tint(){var t=(m+acc/MS)%12,k=Math.floor(t/3),w=Math.max(0,t%3-2),sn=k===3?1-w:k===2?w:0,s=$('g').style,o=[];
-KG.forEach(function(K,b){o.push(['b'+b,sc3(K,t)])});for(var n in KO)o.push([n,sc3(KO[n],t)]);
-var key=o.map(function(a){return a[1].map(Math.round).join()}).join('|')+sn.toFixed(2);if(key===tk)return;tk=key;
+if(!bio)return;var ub={};bio.forEach(function(b){ub[b]=1});for(var b in ub){var kf=KF(+b);o.push(['G'+b,sc3(kf.g,t)]);o.push(['H'+b,sc3(kf.h,t)]);o.push(['M'+b,sc3(kf.m,t)])}
+o.push(['f',sc3(KO.f,t)]);
+var key=o.map(function(a){return a[0]+a[1].map(Math.round).join()}).join('|')+sn.toFixed(2);if(key===tk)return;tk=key;
 o.forEach(function(a){s.setProperty('--'+a[0]+'h',a[1][0].toFixed(1));s.setProperty('--'+a[0]+'s',a[1][1].toFixed(1));s.setProperty('--'+a[0]+'l',a[1][2].toFixed(1))});s.setProperty('--snow',(.55+.45*sn).toFixed(2))}
 function toast(t){var e=$('toast');e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(function(){e.hidden=true},3600)}
 function msg(t){$('msg').textContent=t}
 function ovShow(h){var o=$('ov');o.hidden=false;o.innerHTML=h;return o}
+/* ---- 권역 헬퍼 ---- */
+function zcnt(){var c=0;for(var i=0;i<N;i++)if(zn[i])c++;return c}
+function zq(i,r,t){var x=i%W,y=i/W|0;for(var yy=Math.max(0,y-r);yy<=Math.min(H-1,y+r);yy++)for(var xx=Math.max(0,x-r);xx<=Math.min(W-1,x+r);xx++){if(Math.abs(xx-x)+Math.abs(yy-y)<=r&&zn[yy*W+xx]===t)return true}return false}
+function zmul(i,t,zs){var z=zn[i],m2=1;
+if(z==='T'){if(t==='o')m2*=1+.3*zs.T;else if(t==='c')m2*=1+.1*zs.T;else if(t==='f'||t==='q')m2*=.75;if(t==='o'&&zq(i,3,'I'))m2*=1.1}
+else if(z==='V'){if(t==='v'||t==='k'||t==='c')m2*=1+.3*zs.V;else if(t==='f'||t==='q')m2*=.6}
+else if(z==='I'){if(t==='f'||t==='q'||t==='k')m2*=1+.5*zs.I}
+else if(z==='G'){if(t==='c')m2*=1+.1*zs.G;else if(t==='f'||t==='q')m2*=.7}
+if(t==='v'){if(z!=='I'&&zq(i,3,'I'))m2*=.85;if(zq(i,2,'G'))m2*=1.1}
+return m2}
+function zedge(i,z){var x=i%W,y=i/W|0,c='rgba('+ZT[z].c+',.95)',e=[];
+if(x===0||zn[i-1]!==z)e.push('inset 2px 0 0 '+c);
+if(x===W-1||zn[i+1]!==z)e.push('inset -2px 0 0 '+c);
+if(y===0||zn[i-W]!==z)e.push('inset 0 2px 0 '+c);
+if(y===H-1||zn[i+W]!==z)e.push('inset 0 -2px 0 '+c);
+return e.join(',')}
+function zUI(a){var h='<b>권역 현황</b>',any=0,k,z,l;
+for(k in ZT){if(!a.zc[k])continue;any=1;z=ZT[k];l=a.zl[k];h+='<span class="zr"><i style="background:'+z.h+'"></i>'+z.n+' · '+a.zc[k]+'칸 · Lv.'+l+' <small>(핵심 건물 '+a.zk[k]+(l<3?'/'+[3,7,12][l]:' · MAX')+')</small></span>'}
+if(!any)h+='아직 지정한 권역이 없어요. 권역 도구를 고르고 지도를 드래그해 칠해 보세요.';
+var e=$('zbox');if(e&&e._k!==h){e._k=h;e.innerHTML=h}}
+function zact(i){var t=grid[i],z=tool.slice(1);
+if(t==='S'||t==='W')return msg('바다와 강에는 권역을 지정할 수 없어요.');
+if(z==='x'){if(!zn[i])return;zn[i]='';SF.road();return done()}
+if(zn[i]===z)return;
+if(budget<20)return msg('예산이 부족합니다. (권역은 칸당 20)');
+budget-=20;zn[i]=z;SF.road();logA('z');done()}
 /* ---- 소리 ---- */
 var AC=null,mg,bs=0,bt=null;
 function ac(){try{if(!AC){var C=typeof window!=='undefined'&&(window.AudioContext||window.webkitAudioContext);if(!C)return null;AC=new C();mg=AC.createGain();mg.gain.value=.5;mg.connect(AC.destination)}if(AC.state==='suspended')AC.resume()}catch(e){return null}return AC}
@@ -176,7 +219,7 @@ var MASCOT={sk:'#FFEDE8',hc:'#c9a8ff',hg:1,ec:'#6a4cff',ek:'big',hb:'long',hf:'c
 var ARCH=[
 {k:'idol',role:'아이돌 시장',names:['유나','하린','아리','루아','세라','미소'],q:['시민 여러분, 오늘도 반짝반짝 해봐요!','제 팬이 곧 시민이에요, 두근두근!'],on:'행복한 도시가 스타 시장을 불러냈어요!',t:{hap:3,park:1.2},f:function(a,tc){return a.hap/18+(tc.p||0)*.35},
  gen:function(r){return{sk:pk(r,SKINS),hc:pk(r,['#FF9AD0','#B79CFF','#7FD8FF','#FFB3C7','#F5D77A','#9CE6C9']),ec:pk(r,ECS),ek:'big',hb:pk(r,['long','twin','bob']),hf:pk(r,['curtain','blunt']),cl:pk(r,['sailor','cardigan']),cc:pk(r,['#fff','#FFD6EA','#E4D9FF']),cc2:pk(r,['#FF7EBB','#8E7CFF','#5BB8FF']),acc:sm(r,['star','ribbon','clips','butterfly','heart'],2),mo:pk(r,['smile','cat']),bg:pk(r,['#FFD3EC','#E1D4FF','#CFEBFF']),bl:'#ff8fc0',bo:.55}}},
-{k:'elite',role:'엘리트 테크 시장',names:['세이','이안','도윤','하준','로이','시온'],q:['데이터가 말해줍니다. 이 도시는 더 커질 수 있어요.','효율이 곧 행복입니다.'],on:'돈과 일자리가 넘치는 도시가 엘리트 시장을 택했어요.',t:{com:1.15,cost:.95},f:function(a,tc){return budget/900+(tc.t||0)*1.2+a.emp*2},
+{k:'elite',role:'엘리트 테크 시장',names:['세이','이안','도윤','하준','로이','시온'],q:['데이터가 말해줍니다. 이 도시는 더 커질 수 있어요.','효율이 곧 행복입니다.'],on:'돈과 일자리가 넘치는 도시가 엘리트 시장을 택했어요.',t:{com:1.15,cost:.95,zone:1.1},f:function(a,tc){return budget/900+(tc.t||0)*1.2+a.emp*2},
  gen:function(r){return{sk:pk(r,SKINS),hc:pk(r,['#2B3A67','#3b2f4f','#5a4a3a','#3a3a48','#6C84C8','#8a8fa8']),ec:pk(r,ECS),ek:'sharp',hb:'short',hf:'sweep',cl:'blazer',cc:pk(r,['#2B3A67','#3a3f55','#4a3a66']),cc2:pk(r,['#8F7CFF','#2FB5C8','#E5566D']),acc:r()<.5?['star']:[],gl:r()<.5?pk(r,['rect','round']):0,gc:'#9fb4d8',mo:'smile',bg:pk(r,['#CFE4FF','#DDE6FF','#D5F1EE']),bl:'#ffb4b4',bo:.35}}},
 {k:'hero',role:'소방관 출신 영웅',names:['리오','태양','불꽃','강토','라이','소이'],q:['불길은 내가 막는다! 시민은 내가 지킨다!','걱정 마, 히어로가 왔다!'],on:'불길에 시달린 도시가 영웅 시장을 원했어요!',t:{dmg:.6,fire:.6},f:function(a,tc,fc){return fc*2+(tc.f||0)*.35},
  gen:function(r){var g=r()<.4;return{sk:pk(r,SKINS.slice(1)),hc:pk(r,['#FF7A3D','#FF4A4A','#FFB020','#E85D9A']),ec:pk(r,['#FF9A1F','#E5566D','#2FB5C8','#4C7DFF']),ek:g?'big':'sharp',hb:g?'pony':'short',hf:g?'sweep':'spiky',cl:'jacket',cc:pk(r,['#FF5A3C','#E5322D','#FF7A3D']),cc2:'#FFD84A',acc:['band'],mo:'grin',bg:pk(r,['#FFE0BF','#FFD6D0','#FFF0C2']),bl:'#ff9a8a',bo:.5}}},
@@ -189,8 +232,8 @@ var ARCH=[
 
 function mas(md){return av(MASCOT,md,88)}
 /* ---- 시장 선출 시스템 (랜덤 조합) ---- */
-var myi=0,mys=1,CM=null,LB={inc:'전체 수입',com:'상가·업무',ind:'공장·항구',tour:'관광',adm:'행정비',up:'유지비',cost:'건설비',park:'공원 효과',dmg:'재난 피해',fire:'화재 확산',popm:'인구 증가',hap:'만족'},
-QK=[{g:'관광 덕후',t:{tour:1.2}},{g:'절약왕',t:{adm:.93}},{g:'꼼꼼한',t:{up:.92}},{g:'공사 마스터',t:{cost:.94}},{g:'공원 사랑',t:{park:1.15}},{g:'친절한',t:{hap:2}},{g:'상권 달인',t:{com:1.08}},{g:'공장 옹호',t:{ind:1.12}},{g:'안전 제일',t:{dmg:.85}},{g:'이주 환영',t:{popm:1.06}},{g:'사업 수완',t:{inc:1.04}}];
+var myi=0,mys=1,CM=null,LB={inc:'전체 수입',com:'상가·업무',ind:'공장·항구',tour:'관광',adm:'행정비',up:'유지비',cost:'건설비',park:'공원 효과',dmg:'재난 피해',fire:'화재 확산',popm:'인구 증가',zone:'권역 효과',hap:'만족'},
+QK=[{g:'관광 덕후',t:{tour:1.2}},{g:'절약왕',t:{adm:.93}},{g:'꼼꼼한',t:{up:.92}},{g:'공사 마스터',t:{cost:.94}},{g:'공원 사랑',t:{park:1.15}},{g:'친절한',t:{hap:2}},{g:'상권 달인',t:{com:1.08}},{g:'공장 옹호',t:{ind:1.12}},{g:'안전 제일',t:{dmg:.85}},{g:'이주 환영',t:{popm:1.06}},{g:'사업 수완',t:{inc:1.04}},{g:'권역 설계',t:{zone:1.12}}];
 function mk(a,s){var r=rng(s),A=ARCH[a],t={},k;for(k in A.t){var v=A.t[k];t[k]=k==='hap'?Math.round(v+(r()*2-1)*1.5):+(1+(v-1)*(.6+r()*.8)).toFixed(2)}
 var qk=QK[Math.floor(r()*QK.length)];for(k in qk.t){if(k==='hap')t[k]=(t[k]||0)+qk.t[k];else t[k]=+((t[k]||1)*qk.t[k]).toFixed(2)}
 var d=[];for(k in t){if(k==='hap'){if(t[k])d.push('만족 '+(t[k]>0?'+':'')+t[k])}else d.push(LB[k]+' ×'+t[k])}
@@ -208,6 +251,7 @@ if(fc)return say('worry',rp(['불이야!! 빨리 꺼 주세요~','앗 뜨거워!
 if(approv<30&&S0.pop>=20)return say('worry',rp(['시민들이 화났어요... 지지율이 위험해요!','탄핵 얘기가 들려요ㅠㅠ 달래 주세요!']));
 if(!tot&&speed>0)return say('sleep',rp(['zzZ... 계획가님 아직 계세요?','졸려요... 뭐라도 지어 봐요~']));
 if(c('x')>=3)return say('wow',rp(['또 부수세요?! 철거 중독이에요?','헉, 방금 뭐가 사라졌어요?!']));
+if(c('z')>=6)return say('wow',rp(['구역을 쭉쭉 칠하시네요! 🎨','권역이 생기면 도시 분위기가 확 달라져요~','공업단지 옆 주거지는 조심하세요!']));
 if(c('d')>=8)return say('happy',rp(['길 깔기 장인이시군요! 🛣️','도로가 쭉쭉~ 길 덕후 인정!']));
 if(c('p')>=2)return say('love',rp(['초록초록~ 공원 최고예요 🌳','공원에서 도시락 먹고 싶다!']));
 if(c('f')>=2)return say('worry',rp(['콜록콜록... 공장 연기가...','하늘이 뿌예져요ㅠㅠ']));
@@ -215,7 +259,7 @@ if(c('v')+c('w')+c('q')>=1)return say('wow',rp(['산에 뭘 지으시는 거예�
 if(tot>=7)return say('wow',rp(['와~ 건설 폭주!','손이 안 보여요! 💨']));
 if(budget<150&&tot)return say('worry',rp(['지갑이 얇아졌어요...','돈이 없어요ㅠㅠ 아껴 써야 해요!']));
 if(S0.hap>=70&&S0.pop>=30)return say('love',rp(['시민들이 행복해해요! 우리 계획가님 최고!','도시가 반짝반짝해요 ✦']));
-if(Math.random()<.4)say('ok',rp(['오늘도 도시는 잘 굴러가요~','저는 도리예요! 옆에서 응원할게요.','지하철 놓으면 상가가 좋아한대요!','바이옴마다 특징이 달라요. 호버해 보세요!','말풍선(💬)을 눌러 보세요, 선물이 있어요.',cmy().n+': '+cmy().q]))}
+if(Math.random()<.4)say('ok',rp(['오늘도 도시는 잘 굴러가요~','저는 도리예요! 옆에서 응원할게요.','지하철 놓으면 상가가 좋아한대요!','바이옴마다 특징이 달라요. 호버해 보세요!','말풍선(💬)을 눌러 보세요, 선물이 있어요.','권역을 칠하고 핵심 건물을 늘리면 Lv이 올라요!',cmy().n+': '+cmy().q]))}
 /* ---- 이벤트 ---- */
 function ign(t,n){var l=[];near(t,n,function(j){var g=grid[j];if(g!=='W'&&g!=='S'&&fires[j]===undefined)l.push(j)});l.sort(function(){return Math.random()-.5});fires[t]=0;l.slice(0,6).forEach(function(j){fires[j]=0})}
 var EV=[
@@ -229,6 +273,8 @@ var EV=[
 {r:0,t:'공사비 폭등',d:'자재값이 치솟고 있어요.',a:['비축 자재 구매 (−100)',function(){budget-=100;return'폭등을 피했어요.'}],b:['감수한다',function(){md('cost',1.25,6);return'6개월간 건설비 ×1.25'}]},
 {r:0,t:'푸드트럭 허가 논쟁',d:'골목에 푸드트럭을 허용할까요?',ok:has('c'),a:['허가',function(){md('incC',1.2,5);md('hap',-2,5);return'상가 ×1.2, 만족 −2 (5개월)'}],b:['금지',function(){md('hap',2,3);return'골목이 조용해졌어요 (+2)'}]},
 {r:0,t:'시민 마라톤 대회',d:'도시를 가로지르는 마라톤을 열자는 제안이에요.',ok:function(){return budget>=100},a:['개최 (−100)',function(){budget-=100;md('hap',5,4);md('incV',1.3,4);return'만족 +5, 관광 ×1.3 (4개월)'}],b:['취소',function(){return'다음에 하기로 했어요.'}]},
+{r:0,t:'권역 특화 설계 공모',d:'권역별 특화 전략을 공모하자는 제안이 들어왔어요.',ok:function(){return zcnt()>0&&budget>=100},a:['지원 (−100)',function(){budget-=100;md('zone',1.3,8);return'8개월간 권역 효과 ×1.3'}],b:['거절',function(){return'다음 기회에 하기로 했어요.'}]},
+{r:0,t:'공업단지 오염 민원',d:'공업단지 근처 주민들이 매연을 항의해요.',ok:function(){return S0&&S0.zc.I>0&&cnt('r')+cnt('a')>0&&budget>=150},a:['완충녹지 조성 (−150)',function(){budget-=150;md('zbuf',1,8);return'8개월간 공업단지 인접 만족 감소 면제'}],b:['무시',function(){md('hap',-5,5);return'5개월간 만족도 −5'}]},
 {r:1,t:'산불 발생!',d:'산과 숲에서 불길이 올라옵니다.',ok:function(){return pickT(['F','H','M'])>=0},pre:function(e){e._f=pickT(['F','H','M']);fires[e._f]=0;SF.fire()},a:['헬기 출동 (−120)',function(){delete fires[this._f];budget-=120;return'헬기가 초기 진압에 성공했어요.'}],b:['지켜본다',function(){return'불이 번질 수 있어요. 불난 칸을 눌러 진화하세요(−40).'}]},
 {r:1,t:'공장 화재',d:'공장에서 불이 났어요.',ok:has('f'),pre:function(e){e._f=pickT(['f']);fires[e._f]=0;SF.fire()},a:['소방 지원 (−100)',function(){delete fires[this._f];budget-=100;return'빠른 진화로 피해를 막았어요.'}],b:['피해 감수',function(){return'불이 번지고 있어요. 불난 칸을 눌러 진화하세요(−40).'}]},
 {r:1,t:'SNS에서 화제',d:'우리 동네 상가가 핫플이 되었어요.',ok:has('c'),a:['좋아요!',function(){md('incC',1.4,4);return'4개월간 상가 매출 ×1.4'}]},
@@ -238,6 +284,8 @@ var EV=[
 {r:1,t:'지하 유물 발굴',d:'공사 중 수상한 유물이 나왔어요.',ok:function(){return budget>=100},a:['발굴 (−100)',function(){budget-=100;if(Math.random()<.6){budget+=450;md('incV',1.4,6);return'대박! +450, 관광 ×1.4 (6개월)'}return'그냥 돌멩이였어요...'}],b:['다시 묻는다',function(){return'미스터리로 남았어요.'}]},
 {r:1,t:'노조 파업',d:'공장·업무시설 노동자들이 파업을 예고했어요.',ok:function(){return cnt('f')+cnt('o')>0},a:['임금 인상 (−150)',function(){budget-=150;return'합의 완료.'}],b:['강경 대응',function(){md('incO',.5,3);md('hap',-4,3);return'업무 소득 ×0.5, 만족 −4 (3개월)'}]},
 {r:1,t:'도시 해킹 사건',d:'누군가 시 전산망을 해킹했어요.',a:['몸값 지불 (−200)',function(){budget-=200;return'데이터가 복구됐어요.'}],b:['버틴다',function(){if(Math.random()<.5){md('inc',.8,3);return'피해 발생. 수입 ×0.8 (3개월)'}return'백업 덕분에 무사했어요!'}]},
+{r:1,t:'글로벌 테크 컨퍼런스',d:'테크 밸리에서 국제 컨퍼런스를 열고 싶대요.',ok:function(){return S0&&S0.zk.T>=3&&budget>=150},a:['유치 (−150)',function(){budget-=150;md('incO',1.4,6);md('incC',1.15,6);return'업무 ×1.4, 상가 ×1.15 (6개월)'}],b:['거절',function(){return'컨퍼런스는 다른 도시로 갔어요.'}]},
+{r:1,t:'관광 특구 페스티벌',d:'관광 특구에서 대형 축제를 열자는 제안이에요.',ok:function(){return S0&&S0.zk.V>=3&&budget>=100},a:['개최 (−100)',function(){budget-=100;md('incV',1.5,5);md('incC',1.2,5);return'관광 ×1.5, 상가 ×1.2 (5개월)'}],b:['취소',function(){return'조용히 지나갔어요.'}]},
 {r:2,t:'올림픽 유치 도전',d:'도시의 운명을 건 도전입니다.',ok:function(){return budget>=300},a:['도전! (−300)',function(){budget-=300;if(Math.random()<.5){budget+=1500;md('inc',1.3,12);return'유치 성공! +1500, 수입 ×1.3 (12개월)'}md('hap',-10,6);return'유치 실패... 만족 −10 (6개월)'}],b:['포기',function(){return'안전한 길을 택했어요.'}]},
 {r:2,t:'정체불명의 비행체 착륙',d:'도심 광장에 은색 원반이 내려앉았습니다.',a:['환영 파티',function(){md('incV',2,8);md('incC',1.5,8);md('hap',-5,8);return'관광·상가 폭발! 만족 −5 (8개월)'}],b:['돌려보낸다',function(){budget+=300;return'외계인이 선물(+300)을 두고 떠났어요.'}]},
 {r:2,t:'익명의 거액 기부',d:'어느 노신사가 도시에 큰돈을 기부했어요.',a:['감사히 받는다',function(){budget+=700;return'+700을 받았어요.'}]},
@@ -259,10 +307,10 @@ var RW={'아틀란티스 쓰나미':{ok:function(){return cnt('S')>0},fn:functio
 function roll(k){return wfix(roll0(k))}
 function roll0(k){var l=WX[sea(k)],p=Math.random(),a=0;if(m>=4&&Math.random()<.05){var c=Object.keys(RW).filter(function(n){return RW[n].ok()});if(c.length)return rp(c)}for(var i=0;i<l.length;i++){a+=l[i][1];if(p<a)return l[i][0]}return l[0][0]}
 function onWeather(w){var r=RW[w];if(!r)return;var t=r.fn();SF.ev(2);toast(w+'!');say('wow',t,1);msg(t)}
-var MS_=[['도로 8칸 깔기',function(){return cnt('d')>=8},80],['인구 60명 돌파',function(){return S0.pop>=60},150],['고용률 60% 이상 (인구 30+)',function(){return S0.pop>=30&&S0.emp>=.6},150],['지하철역 개통',function(){return cnt('t')>0},250],['산에서 돈 벌기 (풍력·채석장·케이블카)',function(){return cnt('w')+cnt('q')+cnt('v')>0},200],['서로 다른 바이옴 3곳에 건물 짓기',function(){var s={};for(var i=0;i<N;i++)if(S0.S[i])s[bio[i]]=1;return Object.keys(s).length>=3},300],['항구 개설',function(){return cnt('k')>0},250],['인구 200명 + 지지율 60%',function(){return S0.pop>=200&&approv>=60},400],['건물 레벨 3 달성 (★★)',function(){return lv.some(function(v){return v>=3})},300],['인구 400명 대도시',function(){return S0.pop>=400},600],['재선 성공',function(){return tn>=1},800]];
+var MS_=[['도로 8칸 깔기',function(){return cnt('d')>=8},80],['인구 60명 돌파',function(){return S0.pop>=60},150],['고용률 60% 이상 (인구 30+)',function(){return S0.pop>=30&&S0.emp>=.6},150],['지하철역 개통',function(){return cnt('t')>0},250],['권역 12칸 지정 (권역 도구로 드래그)',function(){return zcnt()>=12},150],['산에서 돈 벌기 (풍력·채석장·케이블카)',function(){return cnt('w')+cnt('q')+cnt('v')>0},200],['서로 다른 바이옴 3곳에 건물 짓기',function(){var s={};for(var i=0;i<N;i++)if(S0.S[i])s[bio[i]]=1;return Object.keys(s).length>=3},300],['항구 개설',function(){return cnt('k')>0},250],['인구 200명 + 지지율 60%',function(){return S0.pop>=200&&approv>=60},400],['건물 레벨 3 달성 (★★)',function(){return lv.some(function(v){return v>=3})},300],['권역 Lv.2 달성 (핵심 건물 7개)',function(){return !!S0.zl&&Object.keys(S0.zl).some(function(k){return S0.zl[k]>=2})},350],['인구 400명 대도시',function(){return S0.pop>=400},600],['재선 성공',function(){return tn>=1},800]];
 function newGame(){
 var s=Math.floor(Math.random()*1e6)+1;function r(){s=(s*9301+49297)%233280;return s/233280}
-grid=Array(N).fill('g');under=Array(N).fill('');bio=[];lv=Array(N).fill(1);lvp=Array(N).fill(0);fires={};bub={};
+grid=Array(N).fill('g');under=Array(N).fill('');zn=Array(N).fill('');bio=[];lv=Array(N).fill(1);lvp=Array(N).fill(0);fires={};bub={};
 var sd=[[5,3],[15,3],[5,8],[15,8],[10,6]].map(function(p){return[p[0]+Math.floor(r()*5-2),p[1]+Math.floor(r()*3-1)]}),bm=pickBio(r);
 for(var i=0;i<N;i++){var x=i%W,y=i/W|0,bd=1e9,bb=0;sd.forEach(function(p,k){var d=Math.abs(x-p[0])+Math.abs(y-p[1])+r()*3;if(d<bd){bd=d;bb=bm[k]}});bio[i]=bb}
 for(x=0;x<W;x++){var dp=1+Math.round(r()*1.2);for(y=H-dp;y<H;y++)grid[y*W+x]='S'}
@@ -272,15 +320,19 @@ near(c,3,function(j,d){if(grid[j]!=='g')return;if(d<=1)grid[j]='M';else if(r()<.
 for(k=0;k<3;k++){c=Math.floor(r()*N);if(grid[c]==='g'){near(c,1,function(j){if(grid[j]==='g'&&r()<.8)grid[j]='H'});grid[c]='H'}}
 for(k=0;k<9;k++){c=Math.floor(r()*N);if(BT[bio[c]][8]>=.7&&r()<.7)continue;[0,1,-1,W,-W,W+1].forEach(function(o){var j=c+o;if(j>=0&&j<N&&grid[j]==='g'&&Math.abs(j%W-c%W)<=1)grid[j]='F'})}
 m=0;acc=0;speed=0;budget=2000;mods=[];pol=[];cons={};vr=Array(N).fill(0);pops={};rollM(Math.floor(Math.random()*ARCH.length));calcP();lastEv=-9;over=false;mi=0;tn=0;approv=60;lowA=0;rev=0;AL=[];pend=[];ovOn=false;wx=roll(0);nx=roll(1);
-$('ov').hidden=true;legend();msg('기후 테마 「'+BT[cz-1][0]+'」 일대 (스펙트럼 '+cz+'/20) — 도로를 깔고 집과 일터를 지으세요. 건물은 짓는 데 시간이 걸려요.');say('happy','안녕하세요 계획가님! 저는 도리예요 ✦',1);done();ovq(intro)}
+$('ov').hidden=true;legend();msg('기후 테마 「'+BT[cz-1][0]+'」 일대 (스펙트럼 '+cz+'/20) — 도로를 깔고 집과 일터를 지으세요. 건물은 짓는 데 시간이 걸려요. 권역 도구로 구역을 칠하면 특화 효과가 생겨요.');say('happy','안녕하세요 계획가님! 저는 도리예요 ✦',1);done();ovq(intro)}
 function compute(){
-var S={},pop=0,J=0,st=0,hh=0,rd=0,fo=0,pk=0,sch=0,i,hm=P.hap,se=sea(m),tc={},gp=[],im=cm('inc')*P.inc,cc=cm('incC')*P.com,om=cm('incO')*P.com,vm=cm('incV')*P.tour,fc=Object.keys(fires).length;
+var S={},pop=0,J=0,st=0,hh=0,rd=0,fo=0,pk=0,sch=0,i,hm=P.hap,se=sea(m),tc={},gp=[],im=cm('inc')*P.inc,cc=cm('incC')*P.com,om=cm('incO')*P.com,vm=cm('incV')*P.tour,fc=Object.keys(fires).length,zc={T:0,V:0,I:0,G:0},zk={T:0,V:0,I:0,G:0},zl={},zst={},zup=0,zbuf=mods.some(function(o){return o.k==='zbuf'});
 mods.forEach(function(o){if(o.k==='hap')hm+=o.v});
 for(i=0;i<N;i++){var t=grid[i];if(t==='F')fo++;if(t==='d'){rd++;continue}if(!B[t])continue;if(cons[i])continue;tc[t]=(tc[t]||0)+1;if(t==='p')pk++;if(t==='s')sch++;
 var bh=BIO[bio[i]][1],fx=[];if(hm)fx.push('정책·이벤트 '+f(hm));if(bh)fx.push(BIO[bio[i]][0]+' '+f(bh));
-S[i]={t:t,hap:50+hm+bh,fx:fx,sub:false,inc:0,lv:lv[i]||1,up:B[t][3],fire:fires[i]!==undefined,act:fires[i]===undefined&&(t==='k'?nb(i).some(function(j){return grid[j]==='S'})&&nb(i).some(function(j){return grid[j]==='d'}):nb(i).some(function(j){return grid[j]==='d'}))};
+S[i]={t:t,hap:50+hm+bh,fx:fx,sub:false,inc:0,zm:1,lv:lv[i]||1,up:B[t][3],fire:fires[i]!==undefined,act:fires[i]===undefined&&(t==='k'?nb(i).some(function(j){return grid[j]==='S'})&&nb(i).some(function(j){return grid[j]==='d'}):nb(i).some(function(j){return grid[j]==='d'}))};
 if(under[i]==='H'){S[i].hap+=5;S[i].fx.push('고지대 전망 +5')}}
 for(i in S){var s=S[i];if(!s.act)continue;var b=B[s.t];if(b[4])hh+=b[4]*(1+.4*(s.lv-1));else if(b[5]){J+=b[5];if(s.t==='c')st++}}
+/* 권역 집계: 칸 수, 핵심 건물 수 → 레벨 → 효과 강도 */
+for(i=0;i<N;i++)if(zn[i]){zc[zn[i]]++;zup+=.25}
+for(i in S){var z0=zn[i];if(z0&&S[i].act&&ZT[z0].k.indexOf(S[i].t)>=0)zk[z0]++}
+for(var zt in ZT){zl[zt]=zk[zt]>=12?3:zk[zt]>=7?2:zk[zt]>=3?1:0;zst[zt]=[.5,1,1.25,1.5][zl[zt]]*P.zone*cm('zone')}
 pop=Math.round(hh*3*P.popm);
 if(pop>=80&&!sch)gp.push(['학교 부족',-8]);if(pop>=150&&pk<2)gp.push(['공원 부족',-6]);if(budget<0)gp.push(['재정 위기',-10]);
 Object.keys(S).forEach(function(k){var s=S[k],g={},pr=false,bi=bio[k];
@@ -296,10 +348,14 @@ else if(u==='M'&&d<=1){g[u]=1;s.hap+=4;s.fx.push('산 조망 +4')}
 else if(u==='S'&&d<=1){g[u]=1;s.hap+=4;s.fx.push('바다 전망 +4')}
 else if(u==='W'&&d<=1){g[u]=1;s.hap+=5;s.fx.push('수변 +5')}});
 gp.forEach(function(a){s.hap+=a[1];s.fx.push(a[0]+' '+a[1])});
-if(wx==='폭염'&&B[s.t][4]&&!pr){s.hap-=8;s.fx.push('폭염 −8')}
+/* 권역 ↔ 주거지 상호작용 */
+var zz=zn[k],hz=B[s.t][4];
+if(zz&&hz){if(zz==='G'){var q1=Math.round(6*zst.G);s.hap+=q1;s.fx.push('녹색 주거 단지 +'+q1)}else if(zz==='V'){var q2=Math.round(3*zst.V);s.hap+=q2;s.fx.push('관광 특구 활기 +'+q2)}else if(zz==='I'){var q3=12+2*zl.I;s.hap-=q3;s.fx.push('공업단지 안 −'+q3)}}
+if(hz&&zz!=='I'&&!zbuf&&zq(+k,2,'I')){var q4=zz==='G'?5:10;s.hap-=q4;s.fx.push('공업단지 인접 −'+q4)}
+if(wx==='폭염'&&B[s.t][4]&&!pr&&zz!=='G'){s.hap-=8;s.fx.push('폭염 −8')}
 if(BT[bi][7]>=.5&&se===1&&B[s.t][4]){var hh6=Math.round(6*BT[bi][7]);s.hap-=hh6;s.fx.push('여름 더위 −'+hh6)}
 s.hap=Math.max(0,Math.min(100,s.hap))});
-var emp=pop?Math.min(1,J/(pop*.5)):0,wf=J?Math.min(1,pop*.5/J):0,inc=0,up=rd*.3,sw=0,sh=0,adm=(10+pop*.15)*P.adm*(1+.05*tn),TM=[1,.8,1.8,1.5];
+var emp=pop?Math.min(1,J/(pop*.5)):0,wf=J?Math.min(1,pop*.5/J):0,inc=0,up=rd*.3+zup,sw=0,sh=0,adm=(10+pop*.15)*P.adm*(1+.05*tn),TM=[1,.8,1.8,1.5];
 for(i in S){var s=S[i],t=s.t,b=B[t],bi=bio[i],lm=1+.5*(s.lv-1);
 if(s.act){if(b[4]){s.inc=(t==='r'?9:32)*(.5+.5*emp)*s.hap/100*lm;sh+=s.hap*b[4];sw+=b[4]}
 else if(t==='c')s.inc=16*Math.min(1,pop/(st*45))*(s.sub?1.25:1)*(.4+.6*wf)*(se===2?1.15:1)*(wx==='한파'?.8:wx==='눈'?.9:1)*cc*lm;
@@ -309,28 +365,31 @@ else if(t==='w')s.inc=wx==='태풍'?0:24*(se>=2?1.25:1)*(1+.2*BT[bi][8])*(under[
 else if(t==='q')s.inc=42*P.ind;
 else if(t==='v')s.inc=30*TM[se]*(wx==='폭우'||wx==='태풍'?.4:1)*vm*(1+.3*BT[bi][9]);
 else if(t==='k')s.inc=34*(.4+.6*wf)*P.ind*(wx==='태풍'?.5:1);
-s.inc*=im}
+s.zm=zmul(+i,t,zst);s.inc*=im*s.zm}
 s.up*=(1+.3*(s.lv-1))*P.up;if(BT[bi][9]>0&&se===3)s.up*=1+.3*BT[bi][9];if(wx==='한파'&&b[4])s.up*=1.5;
 inc+=s.inc;up+=s.up}
 var hap=sw?sh/sw:0,eco=(fo+pk)/N;
-return{S:S,tc:tc,pop:pop,emp:emp,hap:hap,eco:eco,fc:fc,net:inc-up-adm,score:Math.round(pop+hap*4+emp*120+Math.max(0,budget)/15+eco*250+mi*60+tn*300)}}
+return{S:S,tc:tc,pop:pop,emp:emp,hap:hap,eco:eco,fc:fc,zl:zl,zc:zc,zk:zk,net:inc-up-adm,score:Math.round(pop+hap*4+emp*120+Math.max(0,budget)/15+eco*250+mi*60+tn*300+(zl.T+zl.V+zl.I+zl.G)*40)}}
 function roadSvg(i){var u=i>=W&&grid[i-W]==='d',d=i<N-W&&grid[i+W]==='d',l=i%W>0&&grid[i-1]==='d',r=i%W<W-1&&grid[i+1]==='d',c='#7B8A9E';
 return'<svg viewBox="0 0 10 10" width="100%" height="100%"><rect x="2.8" y="2.8" width="4.4" height="4.4" fill="'+c+'"/>'+(u?'<rect x="2.8" y="0" width="4.4" height="3" fill="'+c+'"/>':'')+(d?'<rect x="2.8" y="7" width="4.4" height="3" fill="'+c+'"/>':'')+(l?'<rect x="0" y="2.8" width="3" height="4.4" fill="'+c+'"/>':'')+(r?'<rect x="7" y="2.8" width="3" height="4.4" fill="'+c+'"/>':'')+'</svg>'}
-function lab(){for(var k in tbtn){var b=tbtn[k];b.innerHTML='<span class="ic" style="background:'+(k==='x'?'#FF6A3D':B[k][1])+'">'+sv(IC[k],'#fff','16')+'</span>'+(k==='x'?'철거':B[k][0]+' <small>'+cst(k)+'</small>'+(B[k][7]?' <em>산</em>':k==='k'?' <em>해안</em>':''))}}
+function lab(){for(var k in tbtn){var b=tbtn[k];
+if(k.charAt(0)==='Z'){var z=k.slice(1);b.innerHTML=z==='x'?'<span class="ic" style="background:#8A94A3">'+sv(IC.x,'#fff','16')+'</span>권역 해제':'<span class="ic" style="background:'+ZT[z].h+'">'+sv(IC.Z,'#fff','16')+'</span>'+ZT[z].n+' <small>20</small>';continue}
+b.innerHTML='<span class="ic" style="background:'+(k==='x'?'#FF6A3D':B[k][1])+'">'+sv(IC[k],'#fff','16')+'</span>'+(k==='x'?'철거':B[k][0]+' <small>'+cst(k)+'</small>'+(B[k][7]?' <em>산</em>':k==='k'?' <em>해안</em>':''))}}
 function render(){mUI();
 S0=compute();
 for(var i=0;i<N;i++){var c=cells[i],t=grid[i],cl='c',bg='',fl='',h='',fr=fires[i]!==undefined,bi='b'+bio[i];
-if(t==='g')bg=bc(i,bio[i]);
+if(t==='g')bg=sb(i,'G'+bio[i]);
 else if(t==='W')cl+=' w';
 else if(t==='S')cl+=' sea';
 else if(t==='F'){bg=sb(i,'f');h=sv(IC.F,'rgba(255,255,255,.55)')}
-else if(t==='H'){bg=mc(i,bio[i],0);h=sv(IC.H,'rgba(60,100,60,.35)')}
-else if(t==='M'){bg=mc(i,bio[i],1);h=sv(IC.M,'rgba(55,70,92,.55)')}
-else if(t==='d'){if(under[i]==='W')cl+=' w br';else bg=under[i]==='M'||under[i]==='H'?mc(i,bio[i],under[i]==='M'?1:0):bc(i,bio[i]);h=roadSvg(i)}
+else if(t==='H'){bg=sbm(i,'H'+bio[i]);h=sv(IC.H,'rgba(60,100,60,.35)')}
+else if(t==='M'){bg=sbm(i,'M'+bio[i]);h=sv(IC.M,'rgba(55,70,92,.55)')}
+else if(t==='d'){if(under[i]==='W')cl+=' w br';else bg=under[i]==='M'?sbm(i,'M'+bio[i]):under[i]==='H'?sbm(i,'H'+bio[i]):sb(i,'G'+bio[i]);h=roadSvg(i)}
 else if(cons[i]){var q=cons[i],pc=Math.round((1-q.r/q.t)*100);bg='repeating-linear-gradient(45deg,#F2C94C 0 6px,#5b6577 6px 12px)';cl+=' b cs';h=sv(IC[t],'rgba(255,255,255,.6)')+'<i class="cp"><b style="width:'+pc+'%"></b></i><i class="crn">🏗</i>'}
 else{var v=vr[i]||(Math.floor(R(i)*900)+1),v1=(v%97)/97,v2=(v%53)/53;bg=B[t][1];fl='brightness('+(.86+v1*.26).toFixed(2)+') hue-rotate('+((v2-.5)*36).toFixed(0)+'deg)';cl+=' b';if(pops[i])cl+=' pop';if(!S0.S[i].act&&!fr)cl+=' off';h=sv(IC[t],'#fff',(68+v%3*8)+'%');if(v%4)h+='<i class="dc d'+(v%4)+'"></i>';if((lv[i]||1)>1)h+='<i class="lv">'+'★'.repeat(lv[i]-1)+'</i>'}
 if(fr){cl+=' fire';h+=FL}
 if(bub[i]&&!fr)h+=BB;
+if(zn[i]&&t!=='S'&&t!=='W')h+='<i class="zn" style="background:rgba('+ZT[zn[i]].c+',.2);box-shadow:'+zedge(i,zn[i])+'"></i>';
 var key=cl+bg+h;if(c._k!==key){c._k=key;c.className=cl;c.style.background=bg;c.style.filter=fl;c.innerHTML=h}}
 var a=S0,se=sea(m),mn=(m+2)%12+1,yr=Y0+Math.floor((m+2)/12);
 if(yr!==lastYr){lastYr=yr;lab()}
@@ -340,13 +399,13 @@ $('w1').innerHTML=ws(wx,24);$('w2').innerHTML=ws(nx,16);
 $('bud').textContent=Math.round(budget);$('bud').className=budget<0?'neg':'';$('pop').textContent=a.pop;$('apv').textContent=Math.round(approv)+'%';$('apv').className=approv<30?'neg':'';$('sc').textContent=a.score;
 $('emp').textContent=Math.round(a.emp*100)+'%';$('eco').textContent=Math.round(a.eco*100)+'%';$('net').textContent=f(a.net);$('best').textContent=best;
 $('wt').innerHTML='<b>이번 달 날씨</b>'+WT[wx];
-var ML={hap:'만족 ',inc:'수입 ×',incC:'상가 ×',incO:'업무 ×',incV:'관광 ×',dike:'제방 보강 ',cost:'건설비 ×'};
-$('mods').innerHTML=(a.fc?'<span class="f">화재 '+a.fc+'건</span>':'')+pol.map(function(i){return'<span class="p">'+PO[i][0]+'</span>'}).join('')+mods.map(function(o){return'<span>'+ML[o.k]+(o.k==='hap'?f(o.v):o.k==='dike'?'':o.v)+' · '+o.m+'개월</span>'}).join('');
+var ML={hap:'만족 ',inc:'수입 ×',incC:'상가 ×',incO:'업무 ×',incV:'관광 ×',dike:'제방 보강 ',zbuf:'완충녹지 ',zone:'권역 ×',cost:'건설비 ×'};
+$('mods').innerHTML=(a.fc?'<span class="f">화재 '+a.fc+'건</span>':'')+pol.map(function(i){return'<span class="p">'+PO[i][0]+'</span>'}).join('')+mods.map(function(o){return'<span>'+ML[o.k]+(o.k==='hap'?f(o.v):o.k==='dike'||o.k==='zbuf'?'':o.v)+' · '+o.m+'개월</span>'}).join('');
 $('mi').innerHTML=mi<MS_.length?'<b>미션 '+(mi+1)+'/'+MS_.length+'</b>'+MS_[mi][0]+' → 보상 +'+MS_[mi][2]:'<b>모든 미션 완료!</b>전설의 계획가시군요.';
-bars()}
+zUI(a);bars()}
 function bars(){$('mb').style.width=Math.min(100,acc/MS*100)+'%';$('tp').style.width=Math.min(100,(m+acc/MS-TERM*tn)/TERM*100)+'%';tint();document.querySelectorAll('#sp button').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.s===speed?'true':'false')})}
-function save(){try{localStorage.setItem('usl4',JSON.stringify({g:grid,u:under,bi:bio,l:lv,lp:lvp,f:fires,bu:bub,m:m,a:acc,b:budget,w:wx,n:nx,o:mods,po:pol,e:lastEv,v:over,i:mi,t:tn,ap:approv,la:lowA,my:myi,ms:mys,cz:cz,cn:cons,vr:vr}));return 1}catch(e){return 0}}
-function load(){try{var d=JSON.parse(localStorage.getItem('usl4'));grid=d.g;under=d.u;bio=d.bi;lv=d.l;lvp=d.lp;fires=d.f;bub=d.bu;m=d.m;acc=d.a;budget=d.b;wx=d.w;nx=d.n;mods=d.o;pol=d.po;lastEv=d.e;over=d.v;mi=d.i;tn=d.t;approv=d.ap;lowA=d.la;myi=ARCH[d.my]?d.my:0;mys=d.ms||1;CM=null;cz=d.cz||2;cons=d.cn||{};vr=d.vr||Array(N).fill(0);pops={};speed=0;pend=[];ovOn=false;rev=0;calcP();$('ov').hidden=true;render();legend();if(over)finish(1,'over');else msg('저장된 도시를 불러왔어요. ▶로 이어서 하세요.');return 1}catch(e){return 0}}
+function save(){try{localStorage.setItem('usl4',JSON.stringify({g:grid,u:under,zn:zn,bi:bio,l:lv,lp:lvp,f:fires,bu:bub,m:m,a:acc,b:budget,w:wx,n:nx,o:mods,po:pol,e:lastEv,v:over,i:mi,t:tn,ap:approv,la:lowA,my:myi,ms:mys,cz:cz,cn:cons,vr:vr}));return 1}catch(e){return 0}}
+function load(){try{var d=JSON.parse(localStorage.getItem('usl4'));grid=d.g;under=d.u;zn=d.zn||Array(N).fill('');bio=d.bi;lv=d.l;lvp=d.lp;fires=d.f;bub=d.bu;m=d.m;acc=d.a;budget=d.b;wx=d.w;nx=d.n;mods=d.o;pol=d.po;lastEv=d.e;over=d.v;mi=d.i;tn=d.t;approv=d.ap;lowA=d.la;myi=ARCH[d.my]?d.my:0;mys=d.ms||1;CM=null;cz=d.cz||2;cons=d.cn||{};vr=d.vr||Array(N).fill(0);pops={};speed=0;pend=[];ovOn=false;rev=0;calcP();$('ov').hidden=true;render();legend();if(over)finish(1,'over');else msg('저장된 도시를 불러왔어요. ▶로 이어서 하세요.');return 1}catch(e){return 0}}
 function chk(){if(mi<MS_.length&&MS_[mi][1]()){budget+=MS_[mi][2];toast('미션 완료! +'+MS_[mi][2]);SF.ms();say('love','미션 완료! 짝짝짝 ✦',1);mi++;render()}}
 function done(){render();chk();save()}
 function info(i){var t=grid[i],h,bi=bio[i];
@@ -358,13 +417,15 @@ else if(t==='F')h='<b>숲</b>정리하면 +40 비용과 환경 점수 하락. �
 else if(t==='H')h='<b>낮은 산</b>건설비 ×1.3, 만족 +5(전망), 침수·쓰나미 안전. 풍력단지도 가능. ('+BIO[bi][0]+')';
 else if(t==='M')h='<b>고산</b>일반 건물 불가. 산악도로(+40), 풍력·채석장·케이블카 가능. 주변 집은 조망 +4. 화산이 될지도...';
 else if(cons[i]){h='<b>'+B[t][0]+' 건설 중</b>완공까지 '+cons[i].r+'개월 · 완공 전에는 수입·인구·유지비가 없어요.'}else{var b=B[t],s=S0.S[i];h='<b>'+b[0]+'</b>'+b[6];
-if(s)h+='<br>연결: '+(s.act?'정상':'<span style="color:var(--hot)">도로에 닿지 않음 (생산 0)</span>')+'<br>Lv.'+s.lv+' · 만족도 '+Math.round(s.hap)+' · 월 소득 '+Math.round(s.inc)+' · 월 유지비 '+(Math.round(s.up*10)/10)+(s.fx.length?'<br>영향: '+s.fx.join(', '):'')}
+if(s)h+='<br>연결: '+(s.act?'정상':'<span style="color:var(--hot)">도로에 닿지 않음 (생산 0)</span>')+'<br>Lv.'+s.lv+' · 만족도 '+Math.round(s.hap)+' · 월 소득 '+Math.round(s.inc)+' · 월 유지비 '+(Math.round(s.up*10)/10)+(s.zm&&s.zm!==1?'<br>권역 보정 ×'+s.zm.toFixed(2):'')+(s.fx.length?'<br>영향: '+s.fx.join(', '):'')}
+if(zn[i]&&S0&&S0.zl)h+='<br><span style="color:'+ZT[zn[i]].h+';font-weight:700">▣ '+ZT[zn[i]].n+' 권역 · Lv.'+S0.zl[zn[i]]+'</span><br><small>'+ZT[zn[i]].d+'</small>';
 $('ins').innerHTML=h}
-function act(i){if(over||ovOn)return;var t=grid[i],cost,b;
+function act(i){if(over||ovOn)return;if(tool.charAt(0)==='Z')return zact(i);var t=grid[i],cost,b;
 if(fires[i]!==undefined){if(budget<40)return msg('진화 비용(40)이 부족합니다.');budget-=40;delete fires[i];SF.water();logA('w');msg('불을 껐어요!');say('happy','불 껐다! 고마워요 계획가님!');return done()}
 if(bub[i]){delete bub[i];var g=Math.round(30+Math.random()*50+S0.pop/6);budget+=g;SF.coin();logA('b');if(Math.random()<.35){md('hap',3,3);msg('시민 제안: 기부금 +'+g+', 만족 +3 (3개월)')}else msg('시민 제안: 기부금 +'+g);say('happy',rp(['시민들이 고마워해요!','오~ 소통왕 계획가님!']));return done()}
 if(tool==='x'){if(!B[t])return;budget+=Math.round(B[t][2]/2);grid[i]=under[i]||'g';under[i]='';lv[i]=1;lvp[i]=0;delete cons[i];vr[i]=0;SF.del();logA('x');msg('철거했습니다. 건설비의 50%가 환급됩니다.');return done()}
 b=B[tool];cost=cst(tool,i);
+if(zn[i]==='G'&&(tool==='f'||tool==='q'))return msg('녹색 주거 단지에는 공장·채석장을 지을 수 없어요.');
 if(t==='S')return msg('바다입니다. 항구는 바닷가 땅에 지어요.');
 if(t==='W'){if(tool!=='d')return msg('강 위에는 다리(도로)만 놓을 수 있습니다.');
 var tot=0,br=0;for(var k=0;k<N;k++){if(grid[k]==='W'||under[k]==='W')tot++;if(under[k]==='W')br++}
@@ -377,11 +438,11 @@ if(b[7])return msg(b[0]+'은(는) 산 전용 시설입니다.'+(b[7]==='HM'?' (�
 if(tool==='k'&&!nb(i).some(function(j){return grid[j]==='S'}))return msg('항구는 바다에 맞닿은 땅에만 지을 수 있어요.');
 if(t==='F')cost+=40;else if(t!=='g')return;
 if(budget<cost)return msg('예산이 부족합니다.');
-budget-=cost;grid[i]=tool;under[i]='';lv[i]=1;lvp[i]=0;bld(i,tool);tool==='d'?SF.road():SF.build();logA(tool);done()}
+budget-=cost;grid[i]=tool;under[i]='';lv[i]=1;lvp[i]=0;bld(i,tool);SF.build();logA(tool);done()}
 /* ---- 오버레이 큐 ---- */
 function ovq(fn){pend.push(fn);if(!ovOn)ovn()}
 function ovn(){var fn=pend.shift();if(!fn){ovOn=false;$('ov').hidden=true;speed=prev;bars();return}if(!ovOn){ovOn=true;prev=speed||1}speed=0;fn();bars()}
-function intro(){ovShow('<div class="evc"><span class="rb">PLANNER 2050</span><h3>도시계획가님, 부임을 환영합니다</h3><p>이제 시장은 시민들이 뽑아요! 당신은 시장을 보좌하는 도시계획가예요. 4년마다 선거가 열리고, 도시 상황에 따라 미소녀 아이돌부터 오지콤 아저씨까지 헤어·얼굴·옷이 제각각인 시장이 랜덤으로 당선돼요. 성향도 조금씩 달라요. 지지율 50% 미만이면 시장 교체! 파산·탄핵·혁명이면 게임오버예요.</p><button id="go">첫 시장 만나기 ▶</button></div>');$('go').onclick=function(){startAudio();SF.ms();mayorCard('첫 선거에서 시민들이 선택한 시장이에요!');ovn()}}
+function intro(){ovShow('<div class="evc"><span class="rb">PLANNER 2050</span><h3>도시계획가님, 부임을 환영합니다</h3><p>이제 시장은 시민들이 뽑아요! 당신은 시장을 보좌하는 도시계획가예요. 4년마다 선거가 열리고, 도시 상황에 따라 미소녀 아이돌부터 오지콤 아저씨까지 헤어·얼굴·옷이 제각각인 시장이 랜덤으로 당선돼요. 성향도 조금씩 달라요. 지지율 50% 미만이면 시장 교체! 파산·탄핵·혁명이면 게임오버예요.<br><b>NEW</b> 지도를 드래그해 테크 밸리·관광 특구·공업단지·녹색 주거 단지 권역을 칠해 보세요. 핵심 건물이 늘면 권역 Lv이 올라 효과가 커지고, 이웃 권역끼리 서로 영향을 줘요.</p><button id="go">첫 시장 만나기 ▶</button></div>');$('go').onclick=function(){startAudio();SF.ms();mayorCard('첫 선거에서 시민들이 선택한 시장이에요!');ovn()}}
 function polCard(){var o=[];PO.forEach(function(p,i){if(pol.indexOf(i)<0)o.push(i)});o.sort(function(){return Math.random()-.5});
 ovShow('<div class="evc pl"><span class="rb">POLICY</span><h3>시장에게 건의할 방침은?</h3><p>시장이 바뀌어도 한 번 채택한 방침은 유지돼요. 장단점을 잘 보세요!</p><div id="pb"></div></div>');
 o.slice(0,3).forEach(function(i){var b=document.createElement('button');b.className='pol';b.innerHTML='<b>'+PO[i][0]+'</b><br><small>'+PO[i][1]+'</small>';b.onclick=function(){pol.push(i);calcP();SF.ms();msg('정책 채택: '+PO[i][0]);say('happy',PO[i][0]+'! 멋진 선택이에요 ✦',1);done();ovn()};$('pb').appendChild(b)})}
@@ -401,6 +462,7 @@ E=[[a.pop<40,'유령 도시의 외로운 계획가','시청보다 주민이 적�
 [budget>=3500,'재정 연금술사','시 금고에 돈이 넘쳐요. 어디에 쓸지가 이제 진짜 문제입니다.'],
 [a.pop>=400&&a.hap>=65,'미래도시 설계의 거장','크고 행복한 도시를 만든 전설. 교과서에 실릴 법한 임기였어요.'],
 [tn>=2,'장기 집권의 달인','세 번 넘게 재선! 동상이 광장에 서 있어요. (너무 크다는 민원은 접수 중)'],
+[(a.zl.T+a.zl.V+a.zl.I+a.zl.G)>=6,'권역 설계의 달인','구역마다 성격이 뚜렷한 도시. 지도 위에 도시의 결이 살아 있어요.'],
 [a.hap>=75,'행복 도시 계획가님','시민 만족도가 하늘을 찔러요. 재선 지지율 90%.'],
 [c('q')>=2,'산을 갈아 넣은 계획가','산이 조금 작아졌지만 곳간은 가득 찼어요.'],
 [c('w')>=2,'바람의 도시 개척자','언덕 위 풍차들이 도시의 새 얼굴이 되었어요.'],
@@ -422,7 +484,7 @@ if(n){msg(w+' 피해: 강가 건물 '+n+'곳, −'+dmg+'. 공원이 곁에 있�
 var fk=Object.keys(fires);
 if(fk.length){if(w==='비'||w==='폭우'||w==='눈'){fk.forEach(function(k){if(Math.random()<.7)delete fires[k]});msg('비(눈) 덕분에 불길이 잡혔어요.');SF.water()}
 else{fk.forEach(function(k){fires[k]++});var lost=0;
-fk.forEach(function(k){if(fires[k]===undefined)return;nb(+k).forEach(function(v){var t=grid[v];if(fires[v]!==undefined)return;var p=t==='F'?.35:t==='f'?.25:(B[t]&&t!=='d'&&t!=='w'?.12:0);p*=BF[bio[v]]*P.fire*(1+.15*tn);if(p&&Math.random()<p)fires[v]=0})});
+fk.forEach(function(k){if(fires[k]===undefined)return;nb(+k).forEach(function(v){var t=grid[v];if(fires[v]!==undefined)return;var p=t==='F'?.35:t==='f'?.25:(B[t]&&t!=='d'&&t!=='w'?.12:0);p*=BF[bio[v]]*P.fire*(1+.15*tn)*(zn[v]==='I'?1.4:1);if(p&&Math.random()<p)fires[v]=0})});
 Object.keys(fires).forEach(function(k){if(fires[k]>=2){var t=grid[k];if(t==='F'||(B[t]&&t!=='d')){grid[k]=t==='F'?'g':(under[k]||'g');under[k]='';lv[k]=1;lost++}delete fires[k]}});
 if(lost){msg('화재로 '+lost+'칸이 불타 사라졌어요. 서둘러 진화하세요!');SF.fire()}}}
 var up=0;hm.forEach(function(k){var s=st.S[k];if('raco'.indexOf(s.t)<0)return;if(s.act&&s.hap>=65){lvp[k]=(lvp[k]||0)+1;if(lvp[k]>=4&&(lv[k]||1)<3){lv[k]=(lv[k]||1)+1;lvp[k]=0;up++}}else lvp[k]=Math.max(0,(lvp[k]||0)-1)});
@@ -440,16 +502,21 @@ if(m%12===0)ovq(polCard);
 var rr=Math.random(),ev0=m-lastEv>=3&&rr<(approv<35?.5:.36);
 if(ev0){var p=Math.random(),r=p<.6?0:p<.88?1:p<.97?2:3;if(approv<35&&m>=8&&Math.random()<.3)r=3;var c=EV.filter(function(e){return e.r===r&&(!e.ok||e.ok())});if(!c.length)c=EV.filter(function(e){return e.r===0&&(!e.ok||e.ok())});lastEv=m;done();showEv(rp(c));return}
 done()}
+/* ---- UI 초기화 ---- */
 [0,1,2,4].forEach(function(s){var b=document.createElement('button');b.dataset.s=s;b.textContent=s?'▶'.repeat(s===4?3:s):'II';b.title=s?s+'배속':'일시정지';b.onclick=function(){if(over||ovOn)return;speed=s;startAudio();bars()};$('sp').appendChild(b)});
+function pickTool(k,b,html){tool=k;document.querySelectorAll('#tb .tl').forEach(function(o){o.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');$('ins').innerHTML=html}
 ['d','r','a','c','o','f','p','s','t','k','w','q','v','x'].forEach(function(k){var b=document.createElement('button');b.className='tl';b.title=k==='x'?'철거 (50% 환급)':B[k][6];tbtn[k]=b;
 b.setAttribute('aria-pressed',k===tool?'true':'false');
-b.onclick=function(){tool=k;document.querySelectorAll('#tb .tl').forEach(function(o){o.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');
-$('ins').innerHTML=k==='x'?'<b>철거</b>건물이나 도로를 지우고 건설비의 50%를 돌려받습니다.':'<b>'+B[k][0]+' (건설 '+cst(k)+' · 월 유지비 '+B[k][3]+')</b>'+B[k][6]};
+b.onclick=function(){pickTool(k,b,k==='x'?'<b>철거</b>건물이나 도로를 지우고 건설비의 50%를 돌려받습니다.':'<b>'+B[k][0]+' (건설 '+cst(k)+' · 월 유지비 '+B[k][3]+')</b>'+B[k][6])};
+$('tb').appendChild(b)});
+var zsep=document.createElement('span');zsep.className='zl';zsep.textContent='권역 (드래그로 칠하기 · 칸당 20 · 월 유지 0.25)';$('tb').appendChild(zsep);
+['T','V','I','G','x'].forEach(function(z){var k='Z'+z,b=document.createElement('button');b.className='tl';b.title=z==='x'?'권역 해제 (무료)':ZT[z].n+': '+ZT[z].d;tbtn[k]=b;b.setAttribute('aria-pressed','false');
+b.onclick=function(){pickTool(k,b,z==='x'?'<b>권역 해제</b>드래그한 칸의 권역 지정을 지웁니다. (무료)':'<b>'+ZT[z].n+' 지정 (칸당 20)</b>'+ZT[z].d+'<br><small>핵심 건물 3·7·12채에서 Lv1·2·3. Lv0은 효과 ×0.5, Lv3은 ×1.5.</small>')};
 $('tb').appendChild(b)});
 var gm=$('g');for(var i=0;i<N;i++){var d=document.createElement('div');d.dataset.i=i;gm.appendChild(d);cells.push(d)}
 function at(e){var el=document.elementFromPoint(e.clientX,e.clientY);while(el&&el.parentNode&&el.dataset.i===undefined&&el!==gm)el=el.parentNode;if(el&&el.dataset&&el.dataset.i!==undefined){var i=+el.dataset.i;info(i);return i}return -1}
 gm.addEventListener('pointerdown',function(e){startAudio();var i=at(e);if(i>=0){down=true;act(i)}});
-gm.addEventListener('pointermove',function(e){var i=at(e);if(down&&i>=0&&(tool==='d'||tool==='x'))act(i)});
+gm.addEventListener('pointermove',function(e){var i=at(e);if(down&&i>=0&&(tool==='d'||tool==='x'||tool.charAt(0)==='Z'))act(i)});
 addEventListener('pointerup',function(){down=false});
 $('nw').onclick=function(){newGame()};$('sv').onclick=function(){msg(save()?'저장했어요! 다음에 열면 이어서 할 수 있어요.':'이 환경에서는 저장할 수 없어요.')};
 $('ld').onclick=function(){msg(load()?'저장된 도시를 불러왔어요.':'저장된 도시가 없어요.')};
