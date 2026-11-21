@@ -121,4 +121,7 @@ h2{font-size:clamp(26px,4.2vw,42px);margin:0 0 10px;line-height:1.2}
 .tags span{background:var(--soft);border-radius:999px;padding:4px 14px;font-size:14px;font-weight:500}
 .two ul{list-style:none;margin:0;padding:0}.two li{padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.two li small{display:block;color:var(--muted)}
 footer{padding:50px 0 90px}
+.zn{position:absolute;inset:0;pointer-events:none;border-radius:3px}
+.zl{flex:0 0 100%;font-size:11px;color:var(--muted);margin-top:2px}
+.zr{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:3px;font-weight:500}.zr i{width:10px;height:10px;border-radius:3px;flex:none}.zr small{color:var(--muted)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.c .fl,.c .bbl,#mc svg{animation:none}}
