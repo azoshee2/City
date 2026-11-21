@@ -1,0 +1,6 @@
+{
+  "name": "Urban Manage Lab",
+  "description": "Urban engineering portfolio and interactive 2050 city simulation laboratory featuring climate biome themes, spatial synergy visualization, and policy governance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
